@@ -1,4 +1,4 @@
-package ca.concordia0.BEBC;
+package ca.concordia.BEBC;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

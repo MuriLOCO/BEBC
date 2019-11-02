@@ -1,4 +1,4 @@
-package ca.concordia0.BEBC;
+package ca.concordia.BEBC;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
