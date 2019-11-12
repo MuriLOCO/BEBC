@@ -1,5 +1,7 @@
 package ca.concordia.BEBC.equations;
 
+import com.fasterxml.jackson.databind.node.BigIntegerNode;
+
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
@@ -18,45 +20,82 @@ public class EquationUtil {
         return tr.add(tw);
     }
 
-    public static BigInteger calculateEkmTot(BigInteger eAvg, BigInteger bTc, BigInteger bPed, BigInteger pHvacAvg, BigInteger tr, BigInteger d){
-        BigInteger firstPart = eAvg.add(new BigInteger("0.1").multiply(bTc.divide(bPed)));
-        BigInteger secondPart = pHvacAvg.multiply(tr.divide(new BigInteger("3600").divide(d)));
+    private static BigInteger calculateEkmTot(BigInteger eavg, BigInteger btc, BigInteger bped, BigInteger phvacAvg, BigInteger tr, BigInteger d){
+        BigInteger firstPart = eavg.add(new BigInteger("0.1").multiply(btc.divide(bped)));
+        BigInteger secondPart = phvacAvg.multiply(tr.divide(new BigInteger("3600").divide(d)));
         return firstPart.add(secondPart);
     }
 
-    public static BigInteger calculatePchg(BigInteger eMax, BigInteger d, BigInteger tW, BigInteger tw, BigInteger nchg){
-        return new BigInteger("3600").multiply(eMax).multiply(d).divide(tw.multiply(nchg));
+    private static BigInteger calculatePchg(BigInteger emax, BigInteger d, BigInteger tw, BigInteger nchg){
+        return new BigInteger("3600").multiply(emax).multiply(d).divide(tw.multiply(nchg));
     }
 
-    public static BigInteger calculateNbr(BigInteger ds, BigInteger bn, BigInteger btc, BigInteger ekmTot){
-        return ds.multiply(bn.multiply(btc).divide(ekmTot));
+    private static BigInteger calculateNbr(BigInteger ds, BigInteger bn, BigInteger btc, BigInteger ekmtot){
+        return ds.multiply(bn.multiply(btc).divide(ekmtot));
     }
 
-    public static BigInteger calculateCBus(BigInteger nc, BigInteger cv, BigInteger cb, BigInteger cc, BigInteger ce, BigInteger ds, BigInteger ekmTot, BigInteger cdem, BigInteger nbr, BigInteger ts, BigInteger dRate, BigInteger j){
+    private static BigInteger calculateCBus(BigInteger nc, BigInteger cv, BigInteger cb, BigInteger cc, BigInteger ce, BigInteger ds, BigInteger ekmTot, BigInteger cdem, BigInteger nbr, BigInteger ts, BigInteger dRate, BigInteger j){
         BigInteger summationValue = new BigInteger("0");
         //Resolve summation
         for(int i = 0; i < j.intValue(); i++){
         BigInteger auxSummation = ce.multiply(ds.multiply(ekmTot)).add(cdem).add(cb.multiply(nbr.divide(ts)).multiply(new BigInteger("1").subtract(dRate).pow(-i)));
         summationValue = summationValue.add(auxSummation);
         }
-        return nc.multiply(cv.add(cb)).add(summationValue).divide(nc);
+        return nc.multiply(cv.add(cb)).add(cc).add(summationValue).divide(nc);
     }
 
-
     /**
-     * Outputs number of buses (Nc), wait time used for charging (tw) and total trip time (trtot) as a list of BigIntegers (follows this order)
-     * Other parameters are:
-     * nc - number of buses
-     * tw - wait time used for charging
+     * Output all calculations in the order of nc, tw, tort, ekmtot, pchg, nbr and ncbus
      * @param tr - time spent driving
      * @param tint - bus schedule interval
+     * @param eavg
+     * @param btc
+     * @param bped
+     * @param phvacavg
+     * @param d
+     * @param emax
+     * @param ncgh
+     * @param ds
+     * @param bn
+     * @param cv
+     * @param cb
+     * @param cc
+     * @param ce
+     * @param cdem
+     * @param ts
+     * @param drate
+     * @param j
      * @return
      */
-    public static List<BigInteger> calculateNcTwTrtot(BigInteger tr, BigInteger tint){
+    public static List<BigInteger> calculateAllValue(BigInteger tr, BigInteger tint, BigInteger eavg,
+                                                     BigInteger btc, BigInteger bped, BigInteger phvacavg,
+                                                     BigInteger d, BigInteger emax, BigInteger ncgh,
+                                                     BigInteger ds, BigInteger bn, BigInteger cv,
+                                                     BigInteger cb, BigInteger cc, BigInteger ce,
+                                                     BigInteger cdem, BigInteger ts, BigInteger drate,
+                                                     BigInteger j){
+
+        //Number of buses (nc)
         BigInteger nc = calculateNc(tr, tint);
+
+        //Wait time used for charging
         BigInteger tw = calculateTw(nc, tr, tint);
+
+        //Total trip time
         BigInteger tort = calculateTrtot(tr, tw);
 
-        return Arrays.asList(nc, tw, tort);
+        //Total energy consumed on a predetermined route
+        BigInteger ekmtot = calculateEkmTot(eavg, btc, bped, phvacavg, tr, d);
+
+        //Charging power
+        BigInteger pchg = calculatePchg(emax, d, tw, ncgh);
+
+        //Number of battery replacements during a bus’s service life
+        BigInteger nbr = calculateNbr(ds, bn, btc, ekmtot);
+
+        //Total cost of ownership of an individual bus
+        BigInteger ncbus = calculateCBus(nc, cv, cb, cc, ce, ds, ekmtot, cdem, nbr, ts, drate, j);
+
+        return Arrays.asList(nc, tw, tort, ekmtot, pchg, nbr, ncbus);
     }
 }
