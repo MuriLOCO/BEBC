@@ -45,26 +45,33 @@ public class EquationUtil {
     }
 
     /**
-     * Output all calculations in the order of nc, tw, tort, ekmtot, pchg, nbr and ncbus
+     * Output all calculations in the order of
+     * nc - number of buses
+     * tw - wait time used for charging
+     * tort - total trip time
+     * ekmtot - total energy consumed on a predetermined route
+     * pchg -  charging power
+     * nbr - number of battery replacements during a bus’s service life
+     * ncbus - total cost of ownership of an individual bus
      * @param tr - time spent driving
      * @param tint - bus schedule interval
-     * @param eavg
-     * @param btc
-     * @param bped
-     * @param phvacavg
-     * @param d
-     * @param emax
-     * @param ncgh
-     * @param ds
-     * @param bn
-     * @param cv
-     * @param cb
-     * @param cc
-     * @param ce
-     * @param cdem
-     * @param ts
-     * @param drate
-     * @param j
+     * @param eavg - average consumption (kWh/km)
+     * @param btc -battery capacity
+     * @param bped - battery pack energy density (Wh/kg)
+     * @param phvacavg - average HVAC system (kW)
+     * @param d - distance travelled (round-trip)
+     * @param emax - maximum consumption (kWh/km)
+     * @param ncgh - charging efficiency
+     * @param ds - total distance travelled during service life
+     * @param bn - battery cycles
+     * @param cv - vehicle cost (k€)
+     * @param cb - battery cost (€/kWh)
+     * @param cc - charging station cost (€/kW)
+     * @param ce - electricity cost (€/kWh)
+     * @param cdem - demand cost ((€/kW)/y)
+     * @param ts - service life (y)
+     * @param drate - discounte rate (%)
+     * @param j - service years from first to last
      * @return
      */
     public static List<BigInteger> calculateAllValue(BigInteger tr, BigInteger tint, BigInteger eavg,
@@ -98,4 +105,12 @@ public class EquationUtil {
 
         return Arrays.asList(nc, tw, tort, ekmtot, pchg, nbr, ncbus);
     }
+
+    public List<List<BigInteger>> calculateListOfAllValues(List<BigInteger> trs, BigInteger tint, BigInteger eavg,
+                                                           BigInteger btc, BigInteger bped, BigInteger phvacavg,
+                                                           BigInteger d, BigInteger emax, BigInteger ncgh,
+                                                           BigInteger ds, BigInteger bn, BigInteger cv,
+                                                           BigInteger cb, BigInteger cc, BigInteger ce,
+                                                           BigInteger cdem, BigInteger ts, BigInteger drate,
+                                                           BigInteger j)
 }
