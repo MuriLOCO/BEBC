@@ -8,37 +8,98 @@ import java.util.List;
 
 public class EquationUtil {
 
+    /**
+     *
+     * @param tr -  time spent driving
+     * @param tint - bus schedule interval
+     * @return
+     */
     private static BigInteger calculateNc(BigInteger tr, BigInteger tint) {
         return tr.divide(tint);
     }
 
+    /**
+     *
+     * @param nc - number of buses
+     * @param tr -  time spent driving
+     * @param tint - bus schedule interval
+     * @return
+     */
     private static BigInteger calculateTw(BigInteger nc, BigInteger tr, BigInteger tint) {
         return nc.multiply(tint).subtract(tr);
     }
 
+    /**
+     *
+     * @param tr - time spent driving
+     * @param tw - wait time used for charging
+     * @return
+     */
     private static BigInteger calculateTrtot(BigInteger tr, BigInteger tw) {
         return tr.add(tw);
     }
 
-    private static BigInteger calculateEkmTot(BigInteger eavg, BigInteger btc, BigInteger bped, BigInteger phvacAvg, BigInteger tr, BigInteger d) {
+    /**
+     *
+     * @param eavg - average consumption (kWh/km)
+     * @param btc      - battery capacity
+     * @param bped     - battery pack energy density (Wh/kg)
+     * @param phvacavg - average HVAC system (kW)
+     * @param tr       - time spent driving
+     * @param d        - distance travelled (round-trip)
+     * @return
+     */
+    private static BigInteger calculateEkmTot(BigInteger eavg, BigInteger btc, BigInteger bped, BigInteger phvacavg, BigInteger tr, BigInteger d) {
         BigInteger firstPart = eavg.add(new BigInteger("0.1").multiply(btc.divide(bped)));
-        BigInteger secondPart = phvacAvg.multiply(tr.divide(new BigInteger("3600").divide(d)));
+        BigInteger secondPart = phvacavg.multiply(tr.divide(new BigInteger("3600").divide(d)));
         return firstPart.add(secondPart);
     }
 
+    /**
+     *
+     * @param emax - maximum consumption (kWh/km)
+     * @param d - distance travelled (round-trip)
+     * @param tw - wait time used for charging
+     * @param nchg - charging efficiency
+     * @return
+     */
     private static BigInteger calculatePchg(BigInteger emax, BigInteger d, BigInteger tw, BigInteger nchg) {
         return new BigInteger("3600").multiply(emax).multiply(d).divide(tw.multiply(nchg));
     }
 
+    /**
+     *
+     * @param ds - total distance travelled during service life
+     * @param bn - battery cycles
+     * @param btc - battery capacity
+     * @param ekmtot - total energy consumed on a predetermined route
+     * @return
+     */
     private static BigInteger calculateNbr(BigInteger ds, BigInteger bn, BigInteger btc, BigInteger ekmtot) {
         return ds.multiply(bn.multiply(btc).divide(ekmtot));
     }
 
-    private static BigInteger calculateCBus(BigInteger nc, BigInteger cv, BigInteger cb, BigInteger cc, BigInteger ce, BigInteger ds, BigInteger ekmTot, BigInteger cdem, BigInteger nbr, BigInteger ts, BigInteger dRate, BigInteger j) {
+    /**
+     *
+     * @param nc - number of buses
+     * @param cv - vehicle cost (k€)
+     * @param cb - battery cost (€/kWh)
+     * @param cc - charging station cost (€/kW)
+     * @param ce - electricity cost (€/kWh)
+     * @param ds - total distance travelled during service life
+     * @param ekmtot - total energy consumed on a predetermined route
+     * @param cdem - demand cost ((€/kW)/y)
+     * @param nbr - number of battery replacements during a bus’s service life
+     * @param ts - service life (y)
+     * @param drate - discounte rate (%)
+     * @param j - service years from first to last
+     * @return
+     */
+    private static BigInteger calculateCBus(BigInteger nc, BigInteger cv, BigInteger cb, BigInteger cc, BigInteger ce, BigInteger ds, BigInteger ekmtot, BigInteger cdem, BigInteger nbr, BigInteger ts, BigInteger drate, BigInteger j) {
         BigInteger summationValue = new BigInteger("0");
         //Resolve summation
         for (int i = 0; i < j.intValue(); i++) {
-            BigInteger auxSummation = ce.multiply(ds.multiply(ekmTot)).add(cdem).add(cb.multiply(nbr.divide(ts)).multiply(new BigInteger("1").subtract(dRate).pow(-i)));
+            BigInteger auxSummation = ce.multiply(ds.multiply(ekmtot)).add(cdem).add(cb.multiply(nbr.divide(ts)).multiply(new BigInteger("1").subtract(drate).pow(-i)));
             summationValue = summationValue.add(auxSummation);
         }
         return nc.multiply(cv.add(cb)).add(cc).add(summationValue).divide(nc);
@@ -57,7 +118,7 @@ public class EquationUtil {
      * @param tr       - time spent driving
      * @param tint     - bus schedule interval
      * @param eavg     - average consumption (kWh/km)
-     * @param btc      -battery capacity
+     * @param btc      - battery capacity
      * @param bped     - battery pack energy density (Wh/kg)
      * @param phvacavg - average HVAC system (kW)
      * @param d        - distance travelled (round-trip)
