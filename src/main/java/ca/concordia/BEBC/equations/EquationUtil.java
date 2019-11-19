@@ -1,8 +1,7 @@
 package ca.concordia.BEBC.equations;
 
-import com.fasterxml.jackson.databind.node.BigIntegerNode;
-
-import java.math.BigInteger;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,8 +13,8 @@ public class EquationUtil {
      * @param tint - bus schedule interval
      * @return
      */
-    private static BigInteger calculateNc(BigInteger tr, BigInteger tint) {
-        return tr.divide(tint);
+    private static BigDecimal calculateNc(BigDecimal tr, BigDecimal tint) {
+        return tr.divide(tint, 2, RoundingMode.HALF_EVEN);
     }
 
     /**
@@ -25,7 +24,7 @@ public class EquationUtil {
      * @param tint - bus schedule interval
      * @return
      */
-    private static BigInteger calculateTw(BigInteger nc, BigInteger tr, BigInteger tint) {
+    private static BigDecimal calculateTw(BigDecimal nc, BigDecimal tr, BigDecimal tint) {
         return nc.multiply(tint).subtract(tr);
     }
 
@@ -35,7 +34,7 @@ public class EquationUtil {
      * @param tw - wait time used for charging
      * @return
      */
-    private static BigInteger calculateTrtot(BigInteger tr, BigInteger tw) {
+    private static BigDecimal calculateTrtot(BigDecimal tr, BigDecimal tw) {
         return tr.add(tw);
     }
 
@@ -49,9 +48,9 @@ public class EquationUtil {
      * @param d        - distance travelled (round-trip)
      * @return
      */
-    private static BigInteger calculateEkmTot(BigInteger eavg, BigInteger btc, BigInteger bped, BigInteger phvacavg, BigInteger tr, BigInteger d) {
-        BigInteger firstPart = eavg.add(new BigInteger("0.1").multiply(btc.divide(bped)));
-        BigInteger secondPart = phvacavg.multiply(tr.divide(new BigInteger("3600").divide(d)));
+    private static BigDecimal calculateEkmTot(BigDecimal eavg, BigDecimal btc, BigDecimal bped, BigDecimal phvacavg, BigDecimal tr, BigDecimal d) {
+        BigDecimal firstPart = eavg.add(new BigDecimal("0.1").multiply(btc.divide(bped, 2, RoundingMode.HALF_EVEN)));
+        BigDecimal secondPart = phvacavg.multiply(tr.divide(new BigDecimal("3600").divide(d, 2, RoundingMode.HALF_EVEN), 2, RoundingMode.HALF_EVEN));
         return firstPart.add(secondPart);
     }
 
@@ -63,8 +62,8 @@ public class EquationUtil {
      * @param nchg - charging efficiency
      * @return
      */
-    private static BigInteger calculatePchg(BigInteger emax, BigInteger d, BigInteger tw, BigInteger nchg) {
-        return new BigInteger("3600").multiply(emax).multiply(d).divide(tw.multiply(nchg));
+    private static BigDecimal calculatePchg(BigDecimal emax, BigDecimal d, BigDecimal tw, BigDecimal nchg) {
+        return new BigDecimal("3600").multiply(emax).multiply(d).divide(tw.multiply(nchg), 2, RoundingMode.HALF_EVEN);
     }
 
     /**
@@ -75,8 +74,8 @@ public class EquationUtil {
      * @param ekmtot - total energy consumed on a predetermined route
      * @return
      */
-    private static BigInteger calculateNbr(BigInteger ds, BigInteger bn, BigInteger btc, BigInteger ekmtot) {
-        return ds.multiply(bn.multiply(btc).divide(ekmtot));
+    private static BigDecimal calculateNbr(BigDecimal ds, BigDecimal bn, BigDecimal btc, BigDecimal ekmtot) {
+        return ds.multiply(bn.multiply(btc).divide(ekmtot, 2, RoundingMode.HALF_EVEN));
     }
 
     /**
@@ -95,14 +94,14 @@ public class EquationUtil {
      * @param j - service years from first to last
      * @return
      */
-    private static BigInteger calculateCBus(BigInteger nc, BigInteger cv, BigInteger cb, BigInteger cc, BigInteger ce, BigInteger ds, BigInteger ekmtot, BigInteger cdem, BigInteger nbr, BigInteger ts, BigInteger drate, BigInteger j) {
-        BigInteger summationValue = new BigInteger("0");
+    private static BigDecimal calculateCBus(BigDecimal nc, BigDecimal cv, BigDecimal cb, BigDecimal cc, BigDecimal ce, BigDecimal ds, BigDecimal ekmtot, BigDecimal cdem, BigDecimal nbr, BigDecimal ts, BigDecimal drate, BigDecimal j) {
+        BigDecimal summationValue = new BigDecimal("0");
         //Resolve summation
         for (int i = 0; i < j.intValue(); i++) {
-            BigInteger auxSummation = ce.multiply(ds.multiply(ekmtot)).add(cdem).add(cb.multiply(nbr.divide(ts)).multiply(new BigInteger("1").subtract(drate).pow(-i)));
+            BigDecimal auxSummation = ce.multiply(ds.multiply(ekmtot)).add(cdem).add(cb.multiply(nbr.divide(ts, 2, RoundingMode.HALF_EVEN)).multiply(new BigDecimal("1").subtract(drate).pow(-i)));
             summationValue = summationValue.add(auxSummation);
         }
-        return nc.multiply(cv.add(cb)).add(cc).add(summationValue).divide(nc);
+        return nc.multiply(cv.add(cb)).add(cc).add(summationValue).divide(nc,  2, RoundingMode.HALF_EVEN);
     }
 
     /**
@@ -136,34 +135,34 @@ public class EquationUtil {
      * @param j        - service years from first to last
      * @return
      */
-    public static List<BigInteger> calculateAllValue(BigInteger tr, BigInteger tint, BigInteger eavg,
-                                                     BigInteger btc, BigInteger bped, BigInteger phvacavg,
-                                                     BigInteger d, BigInteger emax, BigInteger ncgh,
-                                                     BigInteger ds, BigInteger bn, BigInteger cv,
-                                                     BigInteger cb, BigInteger cc, BigInteger ce,
-                                                     BigInteger cdem, BigInteger ts, BigInteger drate,
-                                                     BigInteger j) {
+    public static List<BigDecimal> calculateAllValue(String tr, String tint, String eavg,
+                                                     String btc, String bped, String phvacavg,
+                                                     String d, String emax, String ncgh,
+                                                     String ds, String bn, String cv,
+                                                     String cb, String cc, String ce,
+                                                     String cdem, String ts, String drate,
+                                                     String j) {
 
         //Number of buses (nc)
-        BigInteger nc = calculateNc(tr, tint);
+        BigDecimal nc = calculateNc(new BigDecimal(tr), new BigDecimal(tint));
 
         //Wait time used for charging
-        BigInteger tw = calculateTw(nc, tr, tint);
+        BigDecimal tw = calculateTw(nc, new BigDecimal(tr), new BigDecimal(tint));
 
         //Total trip time
-        BigInteger tort = calculateTrtot(tr, tw);
+        BigDecimal tort = calculateTrtot(new BigDecimal(tr), tw);
 
         //Total energy consumed on a predetermined route
-        BigInteger ekmtot = calculateEkmTot(eavg, btc, bped, phvacavg, tr, d);
+        BigDecimal ekmtot = calculateEkmTot(new BigDecimal(eavg), new BigDecimal(btc), new BigDecimal(bped), new BigDecimal(phvacavg), new BigDecimal(tr), new BigDecimal(d));
 
         //Charging power
-        BigInteger pchg = calculatePchg(emax, d, tw, ncgh);
+        BigDecimal pchg = calculatePchg(new BigDecimal(emax), new BigDecimal(d), tw, new BigDecimal(ncgh));
 
         //Number of battery replacements during a bus’s service life
-        BigInteger nbr = calculateNbr(ds, bn, btc, ekmtot);
+        BigDecimal nbr = calculateNbr(new BigDecimal(ds), new BigDecimal(bn), new BigDecimal(btc), ekmtot);
 
         //Total cost of ownership of an individual bus
-        BigInteger ncbus = calculateCBus(nc, cv, cb, cc, ce, ds, ekmtot, cdem, nbr, ts, drate, j);
+        BigDecimal ncbus = calculateCBus(nc, new BigDecimal(cv), new BigDecimal(cb), new BigDecimal(cc), new BigDecimal(ce), new BigDecimal(ds), ekmtot, new BigDecimal(cdem), nbr, new BigDecimal(ts), new BigDecimal(drate), new BigDecimal(j));
 
         return Arrays.asList(nc, tw, tort, ekmtot, pchg, nbr, ncbus);
     }

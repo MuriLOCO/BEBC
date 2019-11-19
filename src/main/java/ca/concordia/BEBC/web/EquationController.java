@@ -6,33 +6,33 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
 public class EquationController {
 
     @RequestMapping(value = "/calculate", method = RequestMethod.POST)
-    public List<BigInteger> calculate(
-            @RequestParam(required = true) BigInteger tr,
-            @RequestParam(required = true) BigInteger tint,
-            @RequestParam(required = true) BigInteger eavg,
-            @RequestParam(required = true) BigInteger btc,
-            @RequestParam(required = true) BigInteger bped,
-            @RequestParam(required = true) BigInteger phvacavg,
-            @RequestParam(required = true) BigInteger d,
-            @RequestParam(required = true) BigInteger emax,
-            @RequestParam(required = true) BigInteger ncgh,
-            @RequestParam(required = true) BigInteger ds,
-            @RequestParam(required = true) BigInteger bn,
-            @RequestParam(required = true) BigInteger cv,
-            @RequestParam(required = true) BigInteger cb,
-            @RequestParam(required = true) BigInteger cc,
-            @RequestParam(required = true) BigInteger ce,
-            @RequestParam(required = true) BigInteger cdem,
-            @RequestParam(required = true) BigInteger ts,
-            @RequestParam(required = true) BigInteger drate,
-            @RequestParam(required = true) BigInteger j){
+    public List<BigDecimal> calculate(
+            @RequestParam(required = true) String tr,
+            @RequestParam(required = true) String tint,
+            @RequestParam(required = true) String eavg,
+            @RequestParam(required = true) String btc,
+            @RequestParam(required = true) String bped,
+            @RequestParam(required = true) String phvacavg,
+            @RequestParam(required = true) String d,
+            @RequestParam(required = true) String emax,
+            @RequestParam(required = true) String ncgh,
+            @RequestParam(required = true) String ds,
+            @RequestParam(required = true) String bn,
+            @RequestParam(required = true) String cv,
+            @RequestParam(required = true) String cb,
+            @RequestParam(required = true) String cc,
+            @RequestParam(required = true) String ce,
+            @RequestParam(required = true) String cdem,
+            @RequestParam(required = true) String ts,
+            @RequestParam(required = true) String drate,
+            @RequestParam(required = true) String j){
         return EquationUtil.calculateAllValue(tr, tint, eavg, btc, bped, phvacavg, d, emax, ncgh, ds, bn, cv, cb, cc, ce, cdem, ts, drate, j);
     }
 }
