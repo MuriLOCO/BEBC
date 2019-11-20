@@ -1,6 +1,7 @@
 package ca.concordia.BEBC.equations;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
@@ -49,8 +50,8 @@ public class EquationUtil {
      * @return
      */
     private static BigDecimal calculateEkmTot(BigDecimal eavg, BigDecimal btc, BigDecimal bped, BigDecimal phvacavg, BigDecimal tr, BigDecimal d) {
-        BigDecimal firstPart = eavg.add(new BigDecimal("0.1").multiply(btc.divide(bped, 2, RoundingMode.HALF_EVEN)));
-        BigDecimal secondPart = phvacavg.multiply(tr.divide(new BigDecimal("3600").divide(d, 2, RoundingMode.HALF_EVEN), 2, RoundingMode.HALF_EVEN));
+        BigDecimal firstPart = eavg.add(new BigDecimal("0.1").multiply(btc).divide(bped, 2, RoundingMode.HALF_EVEN));
+        BigDecimal secondPart = phvacavg.multiply(tr).divide(new BigDecimal("3600").divide(d, 2, RoundingMode.HALF_EVEN), 2, RoundingMode.HALF_EVEN);
         return firstPart.add(secondPart);
     }
 
@@ -98,7 +99,7 @@ public class EquationUtil {
         BigDecimal summationValue = new BigDecimal("0");
         //Resolve summation
         for (int i = 0; i < j.intValue(); i++) {
-            BigDecimal auxSummation = ce.multiply(ds.multiply(ekmtot)).add(cdem).add(cb.multiply(nbr.divide(ts, 2, RoundingMode.HALF_EVEN)).multiply(new BigDecimal("1").subtract(drate).pow(-i)));
+            BigDecimal auxSummation = ce.multiply(ds).multiply(ekmtot).add(cdem).add(cb.multiply(nbr.divide(ts, 2, RoundingMode.HALF_EVEN)).multiply(new BigDecimal("1").subtract(drate).pow(-i, MathContext.DECIMAL32)));
             summationValue = summationValue.add(auxSummation);
         }
         return nc.multiply(cv.add(cb)).add(cc).add(summationValue).divide(nc,  2, RoundingMode.HALF_EVEN);
